@@ -16,7 +16,7 @@ type Server struct {
 	pb.UnimplementedUserServiceServer
 	RedisClient *redis.Client
 }
-
+//User is Registered and login data is saved to redis
 func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	hashedPassword := fmt.Sprintf("%x", sha256.Sum256([]byte(req.GetPassword())))
 	err := s.RedisClient.Set(req.GetUsername(), hashedPassword, 0).Err()
@@ -26,7 +26,7 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 
 	return &pb.RegisterResponse{Message: "User registered successfully"}, nil
 }
-
+//User who have already Registered is logged in, JWT Token is returned
 func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	hashedPassword := fmt.Sprintf("%x", sha256.Sum256([]byte(req.GetPassword())))
 	storedPassword, err := s.RedisClient.Get(req.GetUsername()).Result()
@@ -52,7 +52,7 @@ func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResp
 
 	return &pb.LoginResponse{Token: tokenString}, nil
 }
-
+//Logout functionality, for furhter scopes
 func (s *Server) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
 	return &pb.LogoutResponse{Message: "User logged out successfully"}, nil
 }

@@ -10,11 +10,10 @@ import (
 )
 
 func StartVoteServer(redisClient *redis.Client) {
+	//Initialising conntroller
 	controller := controllers.NewVoteController(redisClient)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Welcome"))
-	})
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("Welcome")) })
 	http.HandleFunc("/create", controller.CreateSession)
 	http.HandleFunc("/join", controller.JoinSession)
 	http.HandleFunc("/vote", controller.CastVote)

@@ -31,6 +31,5 @@ func StartAuth(redisClient *redis.Client) {
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
-	fmt.Println("Listening and serving at port 50051")
 
 }

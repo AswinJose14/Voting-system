@@ -14,10 +14,7 @@ type VoteServiceImpl struct {
 	Rdb               *redis.Client
 	ClientConnections map[string]*websocket.Conn
 }
-
-func InitializeRedisClient() {
-
-}
+//Creates session and is stored in Redis
 func (s *VoteServiceImpl) CreateSession(sessionID string) (*models.Session, error) {
 	fmt.Println("Creating session")
 	session := &models.Session{
@@ -31,7 +28,7 @@ func (s *VoteServiceImpl) CreateSession(sessionID string) (*models.Session, erro
 	}
 	return session, nil
 }
-
+//Return Session Data from Redis
 func (s *VoteServiceImpl) GetSession(sessionID string) (*models.Session, bool, error) {
 	session := &models.Session{}
 	fmt.Println("Fetching session from Redis")
@@ -59,7 +56,7 @@ func (s *VoteServiceImpl) GetSession(sessionID string) (*models.Session, bool, e
 
 	return session, true, nil
 }
-
+//Saves Session to Redis
 func (s *VoteServiceImpl) SaveSession(session *models.Session) error {
 	fmt.Println("saving session")
 	sessionData, err := json.Marshal(session)
@@ -75,7 +72,7 @@ func (s *VoteServiceImpl) SaveSession(session *models.Session) error {
 	}
 	return nil
 }
-
+//Used to delete Session, for future case
 func (s *VoteServiceImpl) DeleteSession(sessionID string) error {
 	err := s.Rdb.Del(sessionID).Err()
 	if err != nil {
@@ -83,7 +80,7 @@ func (s *VoteServiceImpl) DeleteSession(sessionID string) error {
 	}
 	return nil
 }
-
+//Adds client to session
 func (s *VoteServiceImpl) AddClient(session *models.Session, username string, conn *websocket.Conn) error {
 	session.Clients[username] = &models.Client{
 		Username: username,
@@ -91,12 +88,12 @@ func (s *VoteServiceImpl) AddClient(session *models.Session, username string, co
 	}
 	return s.SaveSession(session)
 }
-
+//Removes Client from session
 func (s *VoteServiceImpl) RemoveClient(session *models.Session, username string) error {
 	delete(session.Clients, username)
 	return s.SaveSession(session)
 }
-
+//Client vote is checked and added
 func (s *VoteServiceImpl) AddVote(session *models.Session, username string, vote models.Vote) (bool, error) {
 	client, ok := session.Clients[username]
 	if !ok || client.Voted {
@@ -107,7 +104,7 @@ func (s *VoteServiceImpl) AddVote(session *models.Session, username string, vote
 	client.Voted = true
 	return true, s.SaveSession(session)
 }
-
+//THe results are broadcasted to all client connections
 func (s *VoteServiceImpl) BroadcastResults(session *models.Session) {
 	fmt.Println("broadcasting results")
 
@@ -117,7 +114,6 @@ func (s *VoteServiceImpl) BroadcastResults(session *models.Session) {
 	}
 
 	for _, client := range session.Clients {
-		// For simplicity, we assume the clients have a Conn field (you can store the actual connections elsewhere)
 		if clientConn, ok := s.ClientConnections[client.Username]; ok {
 			err := clientConn.WriteJSON(results)
 			if err != nil {

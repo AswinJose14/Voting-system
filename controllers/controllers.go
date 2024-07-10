@@ -31,7 +31,7 @@ func NewVoteController(redis *redis.Client) *VoteController {
 }
 
 var Mux = &sync.Mutex{}
-
+//Create session and return sessionID
 func (c *VoteController) CreateSession(w http.ResponseWriter, r *http.Request) {
 	sessionID := uuid.New().String()
 	session, err := c.service.CreateSession(sessionID)
@@ -42,7 +42,7 @@ func (c *VoteController) CreateSession(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{"session_id": session.ID}
 	jsonResponse(w, response)
 }
-
+//Enable user to join session, Validates token using jwt token
 func (c *VoteController) JoinSession(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.URL.Query().Get("session")
 	token := r.Header.Get("Authorization")
@@ -86,7 +86,7 @@ func (c *VoteController) JoinSession(w http.ResponseWriter, r *http.Request) {
 	// Handle messages in a separate goroutine
 	go c.handleMessages(conn, session, username)
 }
-
+//Enables user to cast their vote
 func (c *VoteController) CastVote(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.URL.Query().Get("session")
 
